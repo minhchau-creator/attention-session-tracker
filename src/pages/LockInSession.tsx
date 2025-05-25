@@ -1,14 +1,16 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FocusIndicator, FocusLevel } from "@/components/FocusIndicator";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useDevice } from "@/context/DeviceContext";
+import { AlertTriangle } from "lucide-react";
 
 const LockInSession = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isDeviceConnected } = useDevice();
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -51,6 +53,15 @@ const LockInSession = () => {
   }, [isActive, isPaused, seconds, focusScore]);
 
   const handleStart = () => {
+    if (!isDeviceConnected) {
+      toast({
+        title: "Device Not Connected",
+        description: "Please connect your EEG device first",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsActive(true);
     setIsPaused(false);
     toast({
@@ -92,6 +103,36 @@ const LockInSession = () => {
     // Navigate to statistics page
     navigate("/statistics");
   };
+
+  if (!isDeviceConnected) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Focus Lock-In Session</h1>
+          <p className="text-muted-foreground">
+            Connect your EEG device to start monitoring
+          </p>
+        </div>
+
+        <div className="max-w-md mx-auto">
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="p-6 text-center">
+              <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2 text-amber-800">
+                EEG Device Required
+              </h3>
+              <p className="text-amber-700 mb-4">
+                You need to connect your EEG device before starting a focus session.
+              </p>
+              <Button onClick={() => navigate("/home")} className="w-full">
+                Go to Device Connection
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">

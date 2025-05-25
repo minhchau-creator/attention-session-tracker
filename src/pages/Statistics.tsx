@@ -1,8 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BrainwaveChart, generateMockBrainwaveData } from "@/components/BrainwaveChart";
+import { FocusTimeChart } from "@/components/FocusTimeChart";
+import { FocusStateChart } from "@/components/FocusStateChart";
+import { FocusInsights } from "@/components/FocusInsights";
 import { FocusLevel } from "@/components/FocusIndicator";
 import { useNavigate } from "react-router-dom";
 
@@ -55,6 +57,32 @@ const Statistics = () => {
     }
   };
 
+  // Generate mock focus time data
+  const generateFocusTimeData = (duration: number) => {
+    const data = [];
+    const intervalMinutes = Math.max(1, Math.floor(duration / 60 / 10)); // 10 data points max
+    
+    for (let i = 0; i < duration; i += intervalMinutes * 60) {
+      const minutes = Math.floor(i / 60);
+      const focus = Math.max(20, Math.min(100, 60 + Math.sin(i / 300) * 25 + Math.random() * 20));
+      data.push({
+        time: `${Math.floor(minutes / 60)}:${(minutes % 60).toString().padStart(2, '0')}`,
+        focus: Math.round(focus)
+      });
+    }
+    
+    return data;
+  };
+
+  // Calculate focus state times (mock data)
+  const calculateFocusStates = (duration: number) => {
+    const highTime = Math.floor(duration * 0.4); // 40% high focus
+    const mediumTime = Math.floor(duration * 0.35); // 35% medium focus  
+    const lowTime = duration - highTime - mediumTime; // remaining low focus
+    
+    return { highTime, mediumTime, lowTime };
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="text-center mb-8">
@@ -64,9 +92,10 @@ const Statistics = () => {
         </p>
       </div>
 
-      <div className="grid gap-6 max-w-4xl mx-auto">
+      <div className="grid gap-6 max-w-6xl mx-auto">
         {sessionData ? (
           <>
+            {/* Basic stats */}
             <div className="grid md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -110,6 +139,24 @@ const Statistics = () => {
               </Card>
             </div>
 
+            {/* Focus time chart */}
+            <FocusTimeChart data={generateFocusTimeData(sessionData.duration)} />
+
+            {/* Focus state pie chart and insights */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <FocusStateChart 
+                {...calculateFocusStates(sessionData.duration)}
+              />
+              <div>
+                <FocusInsights
+                  longestFocusStreak={Math.floor(sessionData.duration / 60 * 0.6)}
+                  sessionDuration={sessionData.duration}
+                  averageFocusScore={sessionData.averageFocusScore}
+                />
+              </div>
+            </div>
+
+            {/* Original assessment */}
             <Card>
               <CardHeader>
                 <CardTitle>Focus Assessment</CardTitle>
@@ -119,36 +166,38 @@ const Statistics = () => {
               </CardContent>
             </Card>
 
+            {/* Brainwave chart */}
             <BrainwaveChart data={brainwaveData} />
 
+            {/* Brainwave legend with new colors */}
             <Card className="brain-wave-bg">
               <CardContent className="p-6">
                 <h3 className="font-medium mb-3">Brainwave Legend:</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <div className="flex items-center mb-1">
-                      <div className="w-3 h-3 rounded-full bg-[#6E59A5] mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#ff6b6b] mr-2"></div>
                       <span className="text-sm font-medium">Attention</span>
                     </div>
                     <p className="text-xs text-muted-foreground">Overall focus level</p>
                   </div>
                   <div>
                     <div className="flex items-center mb-1">
-                      <div className="w-3 h-3 rounded-full bg-[#8B5CF6] mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#4ecdc4] mr-2"></div>
                       <span className="text-sm font-medium">Alpha Waves</span>
                     </div>
                     <p className="text-xs text-muted-foreground">Relaxed alertness</p>
                   </div>
                   <div>
                     <div className="flex items-center mb-1">
-                      <div className="w-3 h-3 rounded-full bg-[#9b87f5] mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#45b7d1] mr-2"></div>
                       <span className="text-sm font-medium">Beta Waves</span>
                     </div>
                     <p className="text-xs text-muted-foreground">Active thinking</p>
                   </div>
                   <div>
                     <div className="flex items-center mb-1">
-                      <div className="w-3 h-3 rounded-full bg-[#D6BCFA] mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#96ceb4] mr-2"></div>
                       <span className="text-sm font-medium">Theta Waves</span>
                     </div>
                     <p className="text-xs text-muted-foreground">Deep relaxation</p>

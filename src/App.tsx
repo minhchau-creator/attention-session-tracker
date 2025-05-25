@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { DeviceProvider } from "@/context/DeviceContext";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import LockInSession from "./pages/LockInSession";
@@ -67,7 +68,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
-        <AppContent />
+        <DeviceProvider>
+          <AppContent />
+        </DeviceProvider>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>

@@ -53,30 +53,30 @@ export const BrainwaveChart: React.FC<BrainwaveChartProps> = ({ data }) => {
               <Line
                 type="monotone"
                 dataKey="attention"
-                stroke="#6E59A5"
-                strokeWidth={2}
+                stroke="#ff6b6b"
+                strokeWidth={3}
                 dot={false}
                 activeDot={{ r: 6 }}
               />
               <Line
                 type="monotone"
                 dataKey="alpha"
-                stroke="#8B5CF6"
-                strokeWidth={2}
+                stroke="#4ecdc4"
+                strokeWidth={3}
                 dot={false}
               />
               <Line
                 type="monotone"
                 dataKey="beta"
-                stroke="#9b87f5"
-                strokeWidth={2}
+                stroke="#45b7d1"
+                strokeWidth={3}
                 dot={false}
               />
               <Line
                 type="monotone"
                 dataKey="theta"
-                stroke="#D6BCFA"
-                strokeWidth={2}
+                stroke="#96ceb4"
+                strokeWidth={3}
                 dot={false}
               />
             </LineChart>

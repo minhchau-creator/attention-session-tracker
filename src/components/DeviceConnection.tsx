@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useDevice } from "@/context/DeviceContext";
 
 enum ConnectionState {
   DISCONNECTED,
@@ -13,6 +14,7 @@ enum ConnectionState {
 export const DeviceConnection: React.FC = () => {
   const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.DISCONNECTED);
   const { toast } = useToast();
+  const { setIsDeviceConnected, setDeviceName } = useDevice();
 
   const handleConnect = () => {
     if (connectionState === ConnectionState.DISCONNECTED) {
@@ -26,6 +28,8 @@ export const DeviceConnection: React.FC = () => {
       
       setTimeout(() => {
         setConnectionState(ConnectionState.CONNECTED);
+        setIsDeviceConnected(true);
+        setDeviceName("NeuroSky MindWave");
         toast({
           title: "Connected",
           description: "Successfully connected to EEG device",
@@ -33,6 +37,8 @@ export const DeviceConnection: React.FC = () => {
       }, 2000);
     } else if (connectionState === ConnectionState.CONNECTED) {
       setConnectionState(ConnectionState.DISCONNECTED);
+      setIsDeviceConnected(false);
+      setDeviceName("");
       toast({
         title: "Disconnected",
         description: "Device disconnected successfully",
