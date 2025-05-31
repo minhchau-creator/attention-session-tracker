@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface BrainwaveDataPoint {
   time: string;
-  attention: number;
+  delta: number;
   alpha: number;
   beta: number;
   theta: number;
@@ -52,11 +52,10 @@ export const BrainwaveChart: React.FC<BrainwaveChartProps> = ({ data }) => {
               <Legend />
               <Line
                 type="monotone"
-                dataKey="attention"
+                dataKey="delta"
                 stroke="#ff6b6b"
                 strokeWidth={3}
                 dot={false}
-                activeDot={{ r: 6 }}
               />
               <Line
                 type="monotone"
@@ -102,7 +101,7 @@ export const generateMockBrainwaveData = (sessionLength: number): BrainwaveDataP
     
     data.push({
       time: timeStr,
-      attention: Math.round(attention),
+      delta: Math.round(20 + Math.sin(i / 2) * 10 + Math.random() * 5),
       alpha: Math.round(30 + Math.sin(i / 3) * 15 + Math.random() * 10),
       beta: Math.round(20 + Math.cos(i / 4) * 10 + Math.random() * 15),
       theta: Math.round(25 + Math.sin(i / 6 + 2) * 10 + Math.random() * 5),

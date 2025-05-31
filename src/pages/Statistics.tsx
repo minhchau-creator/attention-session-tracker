@@ -76,11 +76,11 @@ const Statistics = () => {
 
   // Calculate focus state times (mock data)
   const calculateFocusStates = (duration: number) => {
-    const highTime = Math.floor(duration * 0.4); // 40% high focus
-    const mediumTime = Math.floor(duration * 0.35); // 35% medium focus  
-    const lowTime = duration - highTime - mediumTime; // remaining low focus
+    const highFocusTime = Math.floor(duration * 0.4); // 40% high focus
+    const mediumFocusTime = Math.floor(duration * 0.35); // 35% medium focus  
+    const lowFocusTime = duration - highFocusTime - mediumFocusTime; // remaining low focus
     
-    return { highTime, mediumTime, lowTime };
+    return { highFocusTime, mediumFocusTime, lowFocusTime };
   };
 
   return (
@@ -177,30 +177,30 @@ const Statistics = () => {
                   <div>
                     <div className="flex items-center mb-1">
                       <div className="w-3 h-3 rounded-full bg-[#ff6b6b] mr-2"></div>
-                      <span className="text-sm font-medium">Attention</span>
+                      <span className="text-sm font-medium">Delta Waves</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Overall focus level</p>
+                   
                   </div>
                   <div>
                     <div className="flex items-center mb-1">
                       <div className="w-3 h-3 rounded-full bg-[#4ecdc4] mr-2"></div>
                       <span className="text-sm font-medium">Alpha Waves</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Relaxed alertness</p>
+                     
                   </div>
                   <div>
                     <div className="flex items-center mb-1">
                       <div className="w-3 h-3 rounded-full bg-[#45b7d1] mr-2"></div>
                       <span className="text-sm font-medium">Beta Waves</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Active thinking</p>
+                    
                   </div>
                   <div>
                     <div className="flex items-center mb-1">
                       <div className="w-3 h-3 rounded-full bg-[#96ceb4] mr-2"></div>
                       <span className="text-sm font-medium">Theta Waves</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Deep relaxation</p>
+                    
                   </div>
                 </div>
               </CardContent>
