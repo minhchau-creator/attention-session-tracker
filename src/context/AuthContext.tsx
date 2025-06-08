@@ -76,7 +76,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const user = { id: Date.now().toString(), email, name };
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
-      navigate("/home");
+      
+      // Check if user has completed survey
+      const savedSurvey = localStorage.getItem("userSurvey");
+      if (!savedSurvey) {
+        // New user - redirect to survey
+        navigate("/?step=survey");
+      } else {
+        navigate("/home");
+      }
     } catch (error) {
       console.error("Registration failed", error);
       throw error;

@@ -19,7 +19,7 @@ const items = [
   { title: "Trang chủ", url: "/home", icon: Home },
   { title: "Lịch sử học tập", url: "/statistics", icon: ChartLine },
   { title: "Bộ sưu tập mèo", url: "/cats", icon: Cat },
-  { title: "Lock-in Session", url: "/lock-in", icon: Activity },
+  { title: "Hướng dẫn sử dụng", url: "/guide", icon: Activity },
   { title: "Cài đặt", url: "/settings", icon: Settings },
 ];
 

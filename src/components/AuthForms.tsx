@@ -91,17 +91,17 @@ export const AuthForms: React.FC = () => {
     <Card className="w-full max-w-md mx-auto shadow-lg">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
-          Attention Session Tracker
+          FocusTracker - Theo dõi tập trung
         </CardTitle>
         <CardDescription className="text-center">
-          Monitor and improve your focus with neurofeedback
+          Giám sát và cải thiện khả năng tập trung với neurofeedback
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsTrigger value="login">Đăng nhập</TabsTrigger>
+            <TabsTrigger value="register">Đăng ký</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
@@ -117,13 +117,13 @@ export const AuthForms: React.FC = () => {
               <div className="space-y-2">
                 <Input
                   type="password"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Signing in..." : "Sign In"}
+                {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
               </Button>
             </form>
           </TabsContent>
@@ -132,7 +132,7 @@ export const AuthForms: React.FC = () => {
             <form onSubmit={handleRegisterSubmit} className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Input
-                  placeholder="Name"
+                  placeholder="Họ tên"
                   value={registerForm.name}
                   onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
                 />
@@ -148,7 +148,7 @@ export const AuthForms: React.FC = () => {
               <div className="space-y-2">
                 <Input
                   type="password"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={registerForm.password}
                   onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
                 />
@@ -156,13 +156,13 @@ export const AuthForms: React.FC = () => {
               <div className="space-y-2">
                 <Input
                   type="password"
-                  placeholder="Confirm Password"
+                  placeholder="Xác nhận mật khẩu"
                   value={registerForm.confirmPassword}
                   onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Creating Account..." : "Create Account"}
+                {isSubmitting ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
               </Button>
             </form>
           </TabsContent>
@@ -172,24 +172,24 @@ export const AuthForms: React.FC = () => {
         <div className="text-sm text-muted-foreground text-center">
           {activeTab === "login" ? (
             <p>
-              Don't have an account?{" "}
+              Chưa có tài khoản?{" "}
               <Button
                 variant="link"
                 className="p-0 h-auto"
                 onClick={() => setActiveTab("register")}
               >
-                Sign up
+                Đăng ký ngay
               </Button>
             </p>
           ) : (
             <p>
-              Already have an account?{" "}
+              Đã có tài khoản?{" "}
               <Button
                 variant="link"
                 className="p-0 h-auto"
                 onClick={() => setActiveTab("login")}
               >
-                Sign in
+                Đăng nhập
               </Button>
             </p>
           )}

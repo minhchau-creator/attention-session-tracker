@@ -24,6 +24,8 @@ const LockInSession = () => {
   const [targetDuration, setTargetDuration] = useState<number>(0);
   const [completedTodos, setCompletedTodos] = useState<boolean[]>([]);
   const [money, setMoney] = useState<number>(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showLowFocusWarning, setShowLowFocusWarning] = useState(false);
 
   // Format time as mm:ss
   const formatTime = (totalSeconds: number): string => {
@@ -62,10 +64,14 @@ const LockInSession = () => {
           // Update focus level based on new score
           if (newScore >= 80) {
             setFocusLevel("high");
+            setShowLowFocusWarning(false);
           } else if (newScore >= 50) {
             setFocusLevel("medium");
+            setShowLowFocusWarning(false);
           } else {
             setFocusLevel("low");
+            setShowLowFocusWarning(true);
+            setTimeout(() => setShowLowFocusWarning(false), 3000);
           }
         }
       }, 1000);
@@ -105,25 +111,33 @@ const LockInSession = () => {
   const handleStart = () => {
     setIsActive(true);
     setIsPaused(false);
+    setIsFullscreen(true);
   };
 
   const handlePause = () => {
     setIsPaused(!isPaused);
+    if (isPaused) {
+      setIsFullscreen(true);
+    } else {
+      setIsFullscreen(false);
+    }
     toast({
-      title: isPaused ? "Session Resumed" : "Session Paused",
-      description: isPaused ? "Continue focusing" : "Take a short break"
+      title: isPaused ? "Phiên đã tiếp tục" : "Phiên đã tạm dừng",
+      description: isPaused ? "Tiếp tục tập trung" : "Nghỉ ngơi một chút"
     });
   };
 
   const handleStop = () => {
     if (seconds < 30) {
       toast({
-        title: "Session too short",
-        description: "Please study for at least 30 seconds to generate statistics",
+        title: "Phiên quá ngắn",
+        description: "Vui lòng học ít nhất 30 giây để tạo thống kê",
         variant: "destructive"
       });
       return;
     }
+
+    setIsFullscreen(false);
 
     // Save session data in local storage for statistics page
     const sessionData = {
@@ -184,9 +198,9 @@ const LockInSession = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="text-center flex-1">
-            <h1 className="text-3xl font-bold mb-2">Focus Lock-In Session</h1>
+            <h1 className="text-3xl font-bold mb-2">Phiên tập trung</h1>
             <p className="text-muted-foreground">
-              Connect your EEG device to start monitoring
+              Kết nối thiết bị EEG để bắt đầu giám sát
             </p>
           </div>
         </div>
@@ -196,13 +210,13 @@ const LockInSession = () => {
             <CardContent className="p-6 text-center">
               <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2 text-amber-800">
-                EEG Device Required
+                Cần thiết bị EEG
               </h3>
               <p className="text-amber-700 mb-4">
-                You need to connect your EEG device before starting a focus session.
+                Bạn cần kết nối thiết bị EEG trước khi bắt đầu phiên tập trung.
               </p>
               <Button onClick={() => navigate("/home")} className="w-full">
-                Go to Device Connection
+                Đi đến kết nối thiết bị
               </Button>
             </CardContent>
           </Card>
@@ -212,19 +226,93 @@ const LockInSession = () => {
   }
 
   const getEnvironmentDisplay = () => {
-    const environments: Record<string, { name: string; icon: string }> = {
+    const environments: Record<string, { name: string; icon: string; bgImage?: string }> = {
       default: { name: "Mặc định", icon: "🎯" },
       pomodoro: { name: "Pomodoro", icon: "🍅" },
-      nature: { name: "Thiên nhiên", icon: "🌲" },
-      ocean: { name: "Bờ biển", icon: "🌊" },
-      rain: { name: "Mưa", icon: "🌧️" },
-      cafe: { name: "Quán cà phê", icon: "☕" },
-      library: { name: "Thư viện", icon: "📚" }
+      nature: { name: "Thiên nhiên", icon: "🌲", bgImage: "https://images.unsplash.com/photo-1472396961693-142e6e269027?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" },
+      ocean: { name: "Bờ biển", icon: "🌊", bgImage: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" },
+      rain: { name: "Mưa", icon: "🌧️", bgImage: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" },
+      cafe: { name: "Quán cà phê", icon: "☕", bgImage: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" },
+      library: { name: "Thư viện", icon: "📚", bgImage: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" }
     };
     return environments[sessionConfig?.environment || "default"];
   };
 
   const progressPercentage = targetDuration > 0 ? (seconds / targetDuration) * 100 : 0;
+
+  // Fullscreen timer view
+  if (isFullscreen && isActive && !isPaused) {
+    const environment = getEnvironmentDisplay();
+    const hasBackground = environment.bgImage && sessionConfig?.environment !== "default";
+
+    return (
+      <div 
+        className={`fixed inset-0 z-50 flex flex-col items-center justify-center ${
+          hasBackground ? '' : 'bg-black'
+        }`}
+        style={hasBackground ? {
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${environment.bgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        } : {}}
+      >
+        {/* Low Focus Warning */}
+        {showLowFocusWarning && (
+          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 bg-red-500/20 border border-red-500 rounded-lg p-4 mb-4 text-white text-center animate-pulse">
+            <div className="text-4xl mb-2">😾</div>
+            <div className="text-lg font-bold">Sen phải tập trung để kiếm tiền nuôi mèo!</div>
+            <div className="text-sm">Sen không làm task nữa à?</div>
+          </div>
+        )}
+
+        {/* Main Timer */}
+        <div className="text-center">
+          <div className="text-9xl md:text-[12rem] font-mono font-bold text-white mb-8">
+            {formatTime(seconds)}
+          </div>
+          
+          {/* Progress bar if target duration is set */}
+          {targetDuration > 0 && (
+            <div className="w-80 mb-8">
+              <div className="w-full bg-white/20 rounded-full h-2">
+                <div 
+                  className="bg-white h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                ></div>
+              </div>
+              <div className="text-white/80 text-sm mt-2">
+                Còn lại: {Math.max(0, Math.floor((targetDuration - seconds) / 60))} phút
+              </div>
+            </div>
+          )}
+
+          {/* Focus Status */}
+          <div className="text-white/90 text-xl mb-8">
+            Điểm tập trung: {focusScore}% • Tiền: {money} 💰
+          </div>
+        </div>
+
+        {/* Control Buttons */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4">
+          <Button
+            onClick={handlePause}
+            variant="outline"
+            size="lg"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            ⏸️ Tạm dừng
+          </Button>
+          <Button
+            onClick={handleStop}
+            variant="destructive"
+            size="lg"
+          >
+            ⏹️ Kết thúc
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 bg-slate-50 dark:bg-slate-900 min-h-screen">
@@ -400,13 +488,13 @@ const LockInSession = () => {
 
       <div className="max-w-4xl mx-auto mt-8">
         <div className="bg-muted/50 rounded-lg p-6">
-          <h3 className="font-medium mb-2">Focus Tips:</h3>
+          <h3 className="font-medium mb-2">Mẹo tập trung:</h3>
           <ul className="list-disc list-inside space-y-2 ml-4 text-sm">
-            <li>Set clear goals for your study session</li>
-            <li>Minimize external distractions in your environment</li>
-            <li>Take short breaks every 25-30 minutes</li>
-            <li>Stay hydrated to maintain cognitive function</li>
-            <li>When focus drops, try deep breathing for 30 seconds</li>
+            <li>Đặt mục tiêu rõ ràng cho phiên học tập</li>
+            <li>Giảm thiểu các yếu tố gây xao nhãng trong môi trường</li>
+            <li>Nghỉ ngơi ngắn mỗi 25-30 phút</li>
+            <li>Giữ đủ nước để duy trì chức năng nhận thức</li>
+            <li>Khi mất tập trung, thử thở sâu trong 30 giây</li>
           </ul>
         </div>
       </div>

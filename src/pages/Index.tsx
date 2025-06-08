@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AuthForms } from "@/components/AuthForms";
 import { UserSurvey } from "@/components/UserSurvey";
 import { SurveyResults } from "@/components/SurveyResults";
+import { useAuth } from "@/context/AuthContext";
 
 interface SurveyData {
   maxFocusTime: number;
@@ -11,16 +13,30 @@ interface SurveyData {
 }
 
 const Index = () => {
-  const [step, setStep] = useState<"survey" | "results" | "auth">("survey");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [step, setStep] = useState<"survey" | "results" | "auth">("auth");
   const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
 
   useEffect(() => {
-    // Check if user has already completed survey
-    const savedSurvey = localStorage.getItem("userSurvey");
-    if (savedSurvey) {
-      setStep("auth");
+    const urlParams = new URLSearchParams(location.search);
+    const stepParam = urlParams.get("step");
+    
+    if (stepParam === "survey" && user) {
+      setStep("survey");
+    } else {
+      // Check if user has already completed survey
+      const savedSurvey = localStorage.getItem("userSurvey");
+      if (savedSurvey && !user) {
+        setStep("auth");
+      } else if (!savedSurvey && user) {
+        setStep("survey");
+      } else {
+        setStep("auth");
+      }
     }
-  }, []);
+  }, [location, user]);
 
   const handleSurveyComplete = (data: SurveyData) => {
     setSurveyData(data);
@@ -28,7 +44,11 @@ const Index = () => {
   };
 
   const handleResultsContinue = () => {
-    setStep("auth");
+    if (user) {
+      navigate("/home");
+    } else {
+      setStep("auth");
+    }
   };
 
   if (step === "survey") {
