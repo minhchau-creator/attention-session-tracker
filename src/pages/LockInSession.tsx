@@ -198,7 +198,7 @@ const LockInSession = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="text-center flex-1">
-            <h1 className="text-3xl font-bold mb-2">Phiên tập trung</h1>
+            <h1 className="text-3xl font-bold mb-2">Lock-in</h1>
             <p className="text-muted-foreground">
               Kết nối thiết bị EEG để bắt đầu giám sát
             </p>
@@ -213,7 +213,7 @@ const LockInSession = () => {
                 Cần thiết bị EEG
               </h3>
               <p className="text-amber-700 mb-4">
-                Bạn cần kết nối thiết bị EEG trước khi bắt đầu phiên tập trung.
+                Bạn cần kết nối thiết bị EEG trước khi bắt đầu lock-in.
               </p>
               <Button onClick={() => navigate("/home")} className="w-full">
                 Đi đến kết nối thiết bị

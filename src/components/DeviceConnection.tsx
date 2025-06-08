@@ -58,9 +58,9 @@ export const DeviceConnection: React.FC = () => {
         }`}
       />
       <CardHeader>
-        <CardTitle>EEG Device Connection</CardTitle>
+        <CardTitle>Kết nối thiết bị EEG</CardTitle>
         <CardDescription>
-          Connect your EEG device to start monitoring your brain activity
+          Kết nối thiết bị EEG của bạn để bắt đầu giám sát độ tập trung 
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center py-6">
@@ -96,10 +96,10 @@ export const DeviceConnection: React.FC = () => {
           className="w-full"
         >
           {connectionState === ConnectionState.CONNECTED
-            ? "Disconnect"
+            ? "Ngắt kết nối"
             : connectionState === ConnectionState.CONNECTING
-            ? "Connecting..."
-            : "Connect Device"}
+            ? "Đang kết nối ..."
+            : "Kết nối thiết bị"}
         </Button>
       </CardFooter>
     </Card>
