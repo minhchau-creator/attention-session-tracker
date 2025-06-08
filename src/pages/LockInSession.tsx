@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FocusIndicator, FocusLevel } from "@/components/FocusIndicator";
+import { SessionConfigForm, SessionConfig } from "@/components/SessionConfigForm";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useDevice } from "@/context/DeviceContext";
@@ -16,6 +17,9 @@ const LockInSession = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [focusScore, setFocusScore] = useState(75);
   const [focusLevel, setFocusLevel] = useState<FocusLevel>("medium");
+  const [showConfigForm, setShowConfigForm] = useState(true);
+  const [sessionConfig, setSessionConfig] = useState<SessionConfig | null>(null);
+  const [targetDuration, setTargetDuration] = useState<number>(0);
 
   // Format time as mm:ss
   const formatTime = (totalSeconds: number): string => {
@@ -52,7 +56,7 @@ const LockInSession = () => {
     return () => clearInterval(interval);
   }, [isActive, isPaused, seconds, focusScore]);
 
-  const handleStart = () => {
+  const handleStartSession = (config: SessionConfig) => {
     if (!isDeviceConnected) {
       toast({
         title: "Device Not Connected",
@@ -62,12 +66,20 @@ const LockInSession = () => {
       return;
     }
 
+    setSessionConfig(config);
+    setTargetDuration(config.duration * 60); // Convert minutes to seconds
+    setShowConfigForm(false);
     setIsActive(true);
     setIsPaused(false);
     toast({
       title: "Session Started",
-      description: "Your focus session has begun"
+      description: `"${config.name}" session has begun`,
     });
+  };
+
+  const handleStart = () => {
+    setIsActive(true);
+    setIsPaused(false);
   };
 
   const handlePause = () => {
@@ -93,7 +105,11 @@ const LockInSession = () => {
       duration: seconds,
       averageFocusScore: focusScore,
       timestamp: new Date().toISOString(),
-      focusLevel
+      focusLevel,
+      sessionName: sessionConfig?.name || "Unnamed Session",
+      goals: sessionConfig?.goals || [],
+      environment: sessionConfig?.environment || "default",
+      targetDuration: targetDuration
     };
     
     const existingSessions = JSON.parse(localStorage.getItem("focusSessions") || "[]");
@@ -103,6 +119,24 @@ const LockInSession = () => {
     // Navigate to statistics page
     navigate("/statistics");
   };
+
+  // Show configuration form before starting session
+  if (showConfigForm && isDeviceConnected) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Thiết lập phiên học tập</h1>
+          <p className="text-muted-foreground">
+            Cấu hình chi tiết cho phiên Lock-In của bạn
+          </p>
+        </div>
+        <SessionConfigForm 
+          onStartSession={handleStartSession}
+          onCancel={() => navigate("/home")}
+        />
+      </div>
+    );
+  }
 
   if (!isDeviceConnected) {
     return (
@@ -134,13 +168,38 @@ const LockInSession = () => {
     );
   }
 
+  const getEnvironmentDisplay = () => {
+    const environments: Record<string, { name: string; icon: string }> = {
+      default: { name: "Mặc định", icon: "🎯" },
+      pomodoro: { name: "Pomodoro", icon: "🍅" },
+      nature: { name: "Thiên nhiên", icon: "🌲" },
+      ocean: { name: "Bờ biển", icon: "🌊" },
+      rain: { name: "Mưa", icon: "🌧️" },
+      cafe: { name: "Quán cà phê", icon: "☕" },
+      library: { name: "Thư viện", icon: "📚" }
+    };
+    return environments[sessionConfig?.environment || "default"];
+  };
+
+  const progressPercentage = targetDuration > 0 ? (seconds / targetDuration) * 100 : 0;
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Focus Lock-In Session</h1>
-        <p className="text-muted-foreground">
-          Maintain your focus and monitor your attention levels
-        </p>
+        <h1 className="text-3xl font-bold mb-2">{sessionConfig?.name || "Focus Lock-In Session"}</h1>
+        <div className="flex items-center justify-center gap-4 text-muted-foreground">
+          <span>{getEnvironmentDisplay().icon} {getEnvironmentDisplay().name}</span>
+          {targetDuration > 0 && (
+            <span>• Mục tiêu: {Math.floor(targetDuration / 60)} phút</span>
+          )}
+        </div>
+        {sessionConfig?.goals && sessionConfig.goals.length > 0 && (
+          <div className="mt-2">
+            <span className="text-sm text-muted-foreground">
+              Mục tiêu: {sessionConfig.goals.join(", ")}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -148,7 +207,27 @@ const LockInSession = () => {
 
         <Card>
           <CardContent className="p-6 flex flex-col items-center justify-center">
-            <div className="text-6xl font-bold mb-8">{formatTime(seconds)}</div>
+            <div className="text-6xl font-bold mb-4">{formatTime(seconds)}</div>
+            
+            {/* Progress bar if target duration is set */}
+            {targetDuration > 0 && (
+              <div className="w-full mb-4">
+                <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                  <span>Tiến độ</span>
+                  <span>{Math.min(100, Math.round(progressPercentage))}%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                  ></div>
+                </div>
+                <div className="text-center text-xs text-muted-foreground mt-1">
+                  Còn lại: {Math.max(0, Math.floor((targetDuration - seconds) / 60))} phút
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4 w-full">
               {!isActive ? (
                 <Button onClick={handleStart} size="lg" className="w-full">

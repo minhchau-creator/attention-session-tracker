@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DeviceConnection } from "@/components/DeviceConnection";
+import { RealtimeBrainwaveChart } from "@/components/RealtimeBrainwaveChart";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
@@ -45,6 +46,11 @@ const HomePage = () => {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Real-time Brainwave Chart */}
+      <div className="max-w-6xl mx-auto mt-8">
+        <RealtimeBrainwaveChart />
       </div>
 
       <div className="max-w-4xl mx-auto mt-8 p-6 rounded-lg brain-wave-bg">
