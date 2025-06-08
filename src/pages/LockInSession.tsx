@@ -22,6 +22,8 @@ const LockInSession = () => {
   const [showConfigForm, setShowConfigForm] = useState(true);
   const [sessionConfig, setSessionConfig] = useState<SessionConfig | null>(null);
   const [targetDuration, setTargetDuration] = useState<number>(0);
+  const [completedTodos, setCompletedTodos] = useState<boolean[]>([]);
+  const [foodPellets, setFoodPellets] = useState<number>(0);
 
   // Format time as mm:ss
   const formatTime = (totalSeconds: number): string => {
@@ -30,15 +32,25 @@ const LockInSession = () => {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Random fluctuation in focus score to simulate real-time changes
+  // Random fluctuation in focus score and calculate food pellets
   useEffect(() => {
     let interval: number | undefined;
 
     if (isActive && !isPaused) {
       interval = window.setInterval(() => {
-        setSeconds((seconds) => seconds + 1);
+        setSeconds((prevSeconds) => {
+          const newSeconds = prevSeconds + 1;
+          
+          // Calculate food pellets every 5 minutes (300 seconds)
+          if (newSeconds % 300 === 0) {
+            const pelletsToAdd = focusScore >= 70 ? 30 : focusScore >= 50 ? 15 : 10; // Bonus for high focus
+            setFoodPellets(prev => prev + pelletsToAdd);
+          }
+          
+          return newSeconds;
+        });
         
-        // Simulate focus changes
+        // Simulate focus changes every 30 seconds
         if (seconds % 30 === 0) {
           const newScore = Math.max(30, Math.min(100, focusScore + (Math.random() * 20 - 10)));
           setFocusScore(Math.round(newScore));
@@ -57,6 +69,13 @@ const LockInSession = () => {
     
     return () => clearInterval(interval);
   }, [isActive, isPaused, seconds, focusScore]);
+
+  // Initialize todo list completion status
+  useEffect(() => {
+    if (sessionConfig?.todoList) {
+      setCompletedTodos(new Array(sessionConfig.todoList.length).fill(false));
+    }
+  }, [sessionConfig]);
 
   const handleStartSession = (config: SessionConfig) => {
     if (!isDeviceConnected) {
@@ -204,16 +223,10 @@ const LockInSession = () => {
         )}
       </div>
 
+      {/* Main Focus Interface */}
       <div className="grid lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {/* Real-time Brainwave Chart */}
-        <div className="lg:col-span-2">
-          <RealtimeBrainwaveChart />
-        </div>
-
-        {/* Reward System */}
-        <RewardSystem focusTimeMinutes={Math.floor(seconds / 60)} isActive={isActive && !isPaused} />
-
-        {/* Timer and Controls - Full width */}
+        
+        {/* Timer and Controls - Main Display */}
         <Card className="lg:col-span-2">
           <CardContent className="p-8">
             {/* Focus Status Banner */}
@@ -292,30 +305,64 @@ const LockInSession = () => {
           </CardContent>
         </Card>
 
-        {/* Focus Level Indicator Card */}
-        <Card className="lg:col-span-1">
-          <CardContent className="p-6 text-center">
-            <div className="text-4xl mb-4">
-              {focusLevel === "high" ? "🔥" : focusLevel === "medium" ? "💪" : "😴"}
-            </div>
-            <div className="space-y-3">
-              <div className="text-lg font-semibold">Mức độ tập trung</div>
-              <div className="text-3xl font-bold text-primary">{focusScore}%</div>
-              <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                focusLevel === "high" ? "bg-green-100 text-green-800" :
-                focusLevel === "medium" ? "bg-yellow-100 text-yellow-800" :
-                "bg-red-100 text-red-800"
-              }`}>
-                {focusLevel === "high" ? "Tuyệt vời!" : focusLevel === "medium" ? "Tốt" : "Cần cải thiện"}
+        {/* Food Pellets & Todo List */}
+        <div className="space-y-4">
+          {/* Food Pellets Earned */}
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-4">🍖</div>
+              <div className="space-y-2">
+                <div className="text-lg font-semibold">Hạt thức ăn kiếm được</div>
+                <div className="text-3xl font-bold text-primary">{foodPellets}</div>
+                <div className="text-sm text-muted-foreground">
+                  +{focusScore >= 70 ? 30 : focusScore >= 50 ? 15 : 10} hạt mỗi 5 phút
+                </div>
+                {focusScore >= 70 && (
+                  <div className="text-xs text-green-600 font-medium">Bonus tập trung cao!</div>
+                )}
               </div>
-              <div className="text-xs text-muted-foreground mt-4">
-                {focusLevel === "high" ? "Tiếp tục duy trì!" : 
-                 focusLevel === "medium" ? "Cố gắng tập trung hơn" : 
-                 "Hãy loại bỏ phiền nhiễu"}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Todo List */}
+          {sessionConfig?.todoList && sessionConfig.todoList.length > 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-4">📝 Danh sách công việc</h3>
+                <div className="space-y-2">
+                  {sessionConfig.todoList.map((todo, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={completedTodos[index] || false}
+                        onChange={(e) => {
+                          const newCompleted = [...completedTodos];
+                          newCompleted[index] = e.target.checked;
+                          setCompletedTodos(newCompleted);
+                          
+                          if (e.target.checked) {
+                            setFoodPellets(prev => prev + 5);
+                            toast({
+                              title: "Hoàn thành công việc!",
+                              description: "+5 hạt thức ăn",
+                            });
+                          }
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span className={`text-sm ${completedTodos[index] ? 'line-through text-muted-foreground' : ''}`}>
+                        {todo}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 text-sm text-muted-foreground">
+                  Hoàn thành: {completedTodos.filter(Boolean).length}/{sessionConfig.todoList.length}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto mt-8">

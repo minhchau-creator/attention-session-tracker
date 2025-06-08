@@ -3,16 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import { Trash2, Plus } from "lucide-react";
 
 export interface SessionConfig {
   name: string;
+  mode: "countdown" | "pomodoro" | "stopwatch";
   duration: number;
   environment: string;
   description: string;
   goals: string[];
+  todoList: string[];
+  // Pomodoro specific
+  breakDuration?: number;
+  sessions?: number;
 }
 
 interface SessionConfigFormProps {
@@ -28,21 +35,15 @@ const environments = [
     icon: "🎯"
   },
   {
-    id: "pomodoro",
-    name: "Pomodoro Timer",
-    description: "Chu kỳ 25 phút học + 5 phút nghỉ",
-    icon: "🍅"
-  },
-  {
     id: "nature",
-    name: "Thiên nhiên thư giãn",
+    name: "Thiên nhiên thư giãn", 
     description: "Hình ảnh rừng xanh với âm thanh tự nhiên",
     icon: "🌲"
   },
   {
     id: "ocean",
     name: "Bờ biển yên tĩnh",
-    description: "Tiếng sóng vỗ bờ và hình ảnh đại dương",
+    description: "Tiếng sóng vỗ bờ và hình ảnh đại dương", 
     icon: "🌊"
   },
   {
@@ -73,13 +74,18 @@ const commonGoals = [
 export const SessionConfigForm: React.FC<SessionConfigFormProps> = ({ onStartSession, onCancel }) => {
   const [config, setConfig] = useState<SessionConfig>({
     name: "",
+    mode: "countdown",
     duration: 30,
     environment: "default",
     description: "",
-    goals: []
+    goals: [],
+    todoList: [],
+    breakDuration: 5,
+    sessions: 4
   });
 
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [newTodo, setNewTodo] = useState("");
 
   const handleGoalToggle = (goal: string) => {
     setSelectedGoals(prev => 
@@ -87,6 +93,23 @@ export const SessionConfigForm: React.FC<SessionConfigFormProps> = ({ onStartSes
         ? prev.filter(g => g !== goal)
         : [...prev, goal]
     );
+  };
+
+  const handleAddTodo = () => {
+    if (newTodo.trim()) {
+      setConfig(prev => ({
+        ...prev,
+        todoList: [...prev.todoList, newTodo.trim()]
+      }));
+      setNewTodo("");
+    }
+  };
+
+  const handleRemoveTodo = (index: number) => {
+    setConfig(prev => ({
+      ...prev,
+      todoList: prev.todoList.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -97,12 +120,20 @@ export const SessionConfigForm: React.FC<SessionConfigFormProps> = ({ onStartSes
     });
   };
 
+  const getRewardEstimate = () => {
+    const baseReward = Math.floor(config.duration / 5) * 10;
+    return baseReward;
+  };
+
   const selectedEnvironment = environments.find(env => env.id === config.environment);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-center">Cấu hình phiên học tập</CardTitle>
+        <CardTitle className="text-center">🎯 Cấu hình phiên học tập</CardTitle>
+        <p className="text-center text-muted-foreground">
+          Chọn chế độ học tập phù hợp với bạn
+        </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -118,32 +149,147 @@ export const SessionConfigForm: React.FC<SessionConfigFormProps> = ({ onStartSes
             />
           </div>
 
-          {/* Duration */}
-          <div className="space-y-2">
-            <Label htmlFor="duration">Thời gian học (phút)</Label>
-            <Select 
-              value={config.duration.toString()} 
-              onValueChange={(value) => setConfig({...config, duration: parseInt(value)})}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="15">15 phút</SelectItem>
-                <SelectItem value="25">25 phút (Pomodoro)</SelectItem>
-                <SelectItem value="30">30 phút</SelectItem>
-                <SelectItem value="45">45 phút</SelectItem>
-                <SelectItem value="60">1 giờ</SelectItem>
-                <SelectItem value="90">1.5 giờ</SelectItem>
-                <SelectItem value="120">2 giờ</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Study Modes */}
+          <Tabs 
+            value={config.mode} 
+            onValueChange={(value) => setConfig({...config, mode: value as "countdown" | "pomodoro" | "stopwatch"})}
+          >
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="countdown">⏱️ Đếm ngược</TabsTrigger>
+              <TabsTrigger value="pomodoro">🍅 Pomodoro</TabsTrigger>
+              <TabsTrigger value="stopwatch">⏰ Bấm giờ</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="countdown" className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-medium mb-2">⏱️ Chế độ đếm ngược</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Đặt thời gian học cố định. Phần thưởng tăng theo thời gian.
+                </p>
+                
+                <div className="space-y-3">
+                  <Label>Thời gian học: {config.duration} phút</Label>
+                  <Slider
+                    value={[config.duration]}
+                    onValueChange={(value) => setConfig({...config, duration: value[0]})}
+                    max={180}
+                    min={5}
+                    step={5}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>5 phút</span>
+                    <span className="font-medium text-primary">
+                      {getRewardEstimate()} hạt thức ăn dự kiến
+                    </span>
+                    <span>3 giờ</span>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="pomodoro" className="space-y-4">
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h3 className="font-medium mb-2">🍅 Chế độ Pomodoro</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Chu kỳ học-nghỉ để duy trì sự tập trung.
+                </p>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Thời gian học (phút)</Label>
+                    <Input
+                      type="number"
+                      value={config.duration}
+                      onChange={(e) => setConfig({...config, duration: parseInt(e.target.value) || 25})}
+                      min={15}
+                      max={60}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Thời gian nghỉ (phút)</Label>
+                    <Input
+                      type="number"
+                      value={config.breakDuration}
+                      onChange={(e) => setConfig({...config, breakDuration: parseInt(e.target.value) || 5})}
+                      min={3}
+                      max={15}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Số phiên</Label>
+                    <Input
+                      type="number"
+                      value={config.sessions}
+                      onChange={(e) => setConfig({...config, sessions: parseInt(e.target.value) || 4})}
+                      min={1}
+                      max={8}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-muted-foreground">
+                  Tổng thời gian: {(config.duration * (config.sessions || 4) + (config.breakDuration || 5) * ((config.sessions || 4) - 1))} phút
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="stopwatch" className="space-y-4">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-medium mb-2">⏰ Chế độ bấm giờ</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Học không giới hạn thời gian. Thưởng liên tục theo thời gian.
+                </p>
+                
+                <div className="flex items-center gap-4">
+                  <div className="text-2xl">🎁</div>
+                  <div>
+                    <div className="font-medium">+15 hạt thức ăn mỗi 5 phút</div>
+                    <div className="text-sm text-muted-foreground">
+                      Bonus x2 nếu tập trung liên tục
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Todo List */}
+          <div className="space-y-3">
+            <Label>📝 Danh sách công việc</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Thêm công việc cần hoàn thành..."
+                value={newTodo}
+                onChange={(e) => setNewTodo(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTodo())}
+              />
+              <Button type="button" onClick={handleAddTodo} size="icon">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            {config.todoList.length > 0 && (
+              <div className="space-y-2">
+                {config.todoList.map((todo, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                    <span className="flex-1">{todo}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveTodo(index)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Environment */}
           <div className="space-y-2">
-            <Label>Môi trường học tập</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Label>🎨 Môi trường học tập</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {environments.map((env) => (
                 <div
                   key={env.id}
@@ -166,7 +312,7 @@ export const SessionConfigForm: React.FC<SessionConfigFormProps> = ({ onStartSes
 
           {/* Goals */}
           <div className="space-y-2">
-            <Label>Mục tiêu học tập (chọn nhiều)</Label>
+            <Label>🎯 Mục tiêu học tập (chọn nhiều)</Label>
             <div className="flex flex-wrap gap-2">
               {commonGoals.map((goal) => (
                 <Badge
@@ -181,26 +327,20 @@ export const SessionConfigForm: React.FC<SessionConfigFormProps> = ({ onStartSes
             </div>
           </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Ghi chú (tùy chọn)</Label>
-            <Textarea
-              id="description"
-              placeholder="Mô tả ngắn về nội dung học tập hoặc mục tiêu cụ thể..."
-              value={config.description}
-              onChange={(e) => setConfig({...config, description: e.target.value})}
-              rows={3}
-            />
-          </div>
-
           {/* Summary */}
           {config.name && (
             <div className="p-4 bg-muted/50 rounded-lg">
-              <h4 className="font-medium mb-2">Tóm tắt phiên học:</h4>
+              <h4 className="font-medium mb-2">📋 Tóm tắt phiên học:</h4>
               <div className="space-y-1 text-sm">
                 <p><strong>Tên:</strong> {config.name}</p>
-                <p><strong>Thời gian:</strong> {config.duration} phút</p>
+                <p><strong>Chế độ:</strong> {
+                  config.mode === "countdown" ? "⏱️ Đếm ngược" :
+                  config.mode === "pomodoro" ? "🍅 Pomodoro" : "⏰ Bấm giờ"
+                }</p>
                 <p><strong>Môi trường:</strong> {selectedEnvironment?.icon} {selectedEnvironment?.name}</p>
+                {config.todoList.length > 0 && (
+                  <p><strong>Công việc:</strong> {config.todoList.length} mục</p>
+                )}
                 {selectedGoals.length > 0 && (
                   <p><strong>Mục tiêu:</strong> {selectedGoals.join(", ")}</p>
                 )}
@@ -214,7 +354,7 @@ export const SessionConfigForm: React.FC<SessionConfigFormProps> = ({ onStartSes
               Hủy
             </Button>
             <Button type="submit" className="flex-1" disabled={!config.name}>
-              Bắt đầu phiên học
+              🐱 Bắt đầu nuôi mèo!
             </Button>
           </div>
         </form>
