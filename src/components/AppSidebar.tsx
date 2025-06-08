@@ -13,11 +13,12 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Home, Activity, ChartLine, Settings } from "lucide-react";
+import { Home, Activity, ChartLine, Settings, Cat } from "lucide-react";
 
 const items = [
   { title: "Trang chủ", url: "/home", icon: Home },
   { title: "Lịch sử học tập", url: "/statistics", icon: ChartLine },
+  { title: "Bộ sưu tập mèo", url: "/cats", icon: Cat },
   { title: "Lock-in Session", url: "/lock-in", icon: Activity },
   { title: "Cài đặt", url: "/settings", icon: Settings },
 ];

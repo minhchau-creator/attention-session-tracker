@@ -13,6 +13,7 @@ import HomePage from "./pages/HomePage";
 import LockInSession from "./pages/LockInSession";
 import Statistics from "./pages/Statistics";
 import Settings from "./pages/Settings";
+import CatCollectionPage from "./pages/CatCollectionPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,11 @@ const AppContent = () => {
           <Route path="/statistics" element={
             <ProtectedRoute>
               <Statistics />
+            </ProtectedRoute>
+          } />
+          <Route path="/cats" element={
+            <ProtectedRoute>
+              <CatCollectionPage />
             </ProtectedRoute>
           } />
           <Route path="/settings" element={

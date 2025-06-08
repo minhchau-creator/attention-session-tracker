@@ -8,7 +8,7 @@ import { RewardSystem } from "@/components/RewardSystem";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useDevice } from "@/context/DeviceContext";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 
 const LockInSession = () => {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const LockInSession = () => {
   const [sessionConfig, setSessionConfig] = useState<SessionConfig | null>(null);
   const [targetDuration, setTargetDuration] = useState<number>(0);
   const [completedTodos, setCompletedTodos] = useState<boolean[]>([]);
-  const [foodPellets, setFoodPellets] = useState<number>(0);
+  const [money, setMoney] = useState<number>(0);
 
   // Format time as mm:ss
   const formatTime = (totalSeconds: number): string => {
@@ -41,10 +41,14 @@ const LockInSession = () => {
         setSeconds((prevSeconds) => {
           const newSeconds = prevSeconds + 1;
           
-          // Calculate food pellets every 5 minutes (300 seconds)
+          // Calculate money every 5 minutes (300 seconds)
           if (newSeconds % 300 === 0) {
-            const pelletsToAdd = focusScore >= 70 ? 30 : focusScore >= 50 ? 15 : 10; // Bonus for high focus
-            setFoodPellets(prev => prev + pelletsToAdd);
+            const moneyToAdd = focusScore >= 70 ? 50 : focusScore >= 50 ? 30 : 20; // Bonus for high focus
+            setMoney(prev => prev + moneyToAdd);
+            
+            // Save to localStorage for cat collection
+            const currentMoney = parseInt(localStorage.getItem("userMoney") || "0");
+            localStorage.setItem("userMoney", (currentMoney + moneyToAdd).toString());
           }
           
           return newSeconds;
@@ -144,12 +148,21 @@ const LockInSession = () => {
   // Show configuration form before starting session
   if (showConfigForm && isDeviceConnected) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Thiết lập phiên học tập</h1>
-          <p className="text-muted-foreground">
-            Cấu hình chi tiết cho phiên Lock-In của bạn
-          </p>
+      <div className="container mx-auto py-8 px-4 bg-slate-50 dark:bg-slate-900 min-h-screen">
+        <div className="flex items-center gap-4 mb-8">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => navigate("/home")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center flex-1">
+            <h1 className="text-3xl font-bold mb-2">Thiết lập phiên học tập</h1>
+            <p className="text-muted-foreground">
+              Cấu hình chi tiết cho phiên Lock-In của bạn
+            </p>
+          </div>
         </div>
         <SessionConfigForm 
           onStartSession={handleStartSession}
@@ -161,12 +174,21 @@ const LockInSession = () => {
 
   if (!isDeviceConnected) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Focus Lock-In Session</h1>
-          <p className="text-muted-foreground">
-            Connect your EEG device to start monitoring
-          </p>
+      <div className="container mx-auto py-8 px-4 bg-slate-50 dark:bg-slate-900 min-h-screen">
+        <div className="flex items-center gap-4 mb-8">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => navigate("/home")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center flex-1">
+            <h1 className="text-3xl font-bold mb-2">Focus Lock-In Session</h1>
+            <p className="text-muted-foreground">
+              Connect your EEG device to start monitoring
+            </p>
+          </div>
         </div>
 
         <div className="max-w-md mx-auto">
@@ -205,9 +227,17 @@ const LockInSession = () => {
   const progressPercentage = targetDuration > 0 ? (seconds / targetDuration) * 100 : 0;
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">{sessionConfig?.name || "Focus Lock-In Session"}</h1>
+    <div className="container mx-auto py-8 px-4 bg-slate-50 dark:bg-slate-900 min-h-screen">
+      <div className="flex items-center gap-4 mb-8">
+        <Button 
+          variant="outline" 
+          size="icon"
+          onClick={() => navigate("/home")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-center flex-1">
+          <h1 className="text-3xl font-bold mb-2">{sessionConfig?.name || "Focus Lock-In Session"}</h1>
         <div className="flex items-center justify-center gap-4 text-muted-foreground">
           <span>{getEnvironmentDisplay().icon} {getEnvironmentDisplay().name}</span>
           {targetDuration > 0 && (
@@ -216,11 +246,12 @@ const LockInSession = () => {
         </div>
         {sessionConfig?.goals && sessionConfig.goals.length > 0 && (
           <div className="mt-2">
-            <span className="text-sm text-muted-foreground">
-              Mục tiêu: {sessionConfig.goals.join(", ")}
-            </span>
-          </div>
-        )}
+              <span className="text-sm text-muted-foreground">
+                Mục tiêu: {sessionConfig.goals.join(", ")}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Focus Interface */}
@@ -305,17 +336,17 @@ const LockInSession = () => {
           </CardContent>
         </Card>
 
-        {/* Food Pellets & Todo List */}
+        {/* Money & Todo List */}
         <div className="space-y-4">
-          {/* Food Pellets Earned */}
+          {/* Money Earned */}
           <Card>
             <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-4">🍖</div>
+              <div className="text-4xl mb-4">💰</div>
               <div className="space-y-2">
-                <div className="text-lg font-semibold">Hạt thức ăn kiếm được</div>
-                <div className="text-3xl font-bold text-primary">{foodPellets}</div>
+                <div className="text-lg font-semibold">Tiền kiếm được</div>
+                <div className="text-3xl font-bold text-primary">{money}</div>
                 <div className="text-sm text-muted-foreground">
-                  +{focusScore >= 70 ? 30 : focusScore >= 50 ? 15 : 10} hạt mỗi 5 phút
+                  +{focusScore >= 70 ? 50 : focusScore >= 50 ? 30 : 20} 💰 mỗi 5 phút
                 </div>
                 {focusScore >= 70 && (
                   <div className="text-xs text-green-600 font-medium">Bonus tập trung cao!</div>
@@ -341,10 +372,12 @@ const LockInSession = () => {
                           setCompletedTodos(newCompleted);
                           
                           if (e.target.checked) {
-                            setFoodPellets(prev => prev + 5);
+                            setMoney(prev => prev + 10);
+                            const currentMoney = parseInt(localStorage.getItem("userMoney") || "0");
+                            localStorage.setItem("userMoney", (currentMoney + 10).toString());
                             toast({
                               title: "Hoàn thành công việc!",
-                              description: "+5 hạt thức ăn",
+                              description: "+10 💰",
                             });
                           }
                         }}
