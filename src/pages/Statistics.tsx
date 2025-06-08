@@ -6,6 +6,7 @@ import { FocusTimeChart } from "@/components/FocusTimeChart";
 import { FocusStateChart } from "@/components/FocusStateChart";
 import { FocusInsights } from "@/components/FocusInsights";
 import { FocusLevel } from "@/components/FocusIndicator";
+import { SessionHistoryTable } from "@/components/SessionHistoryTable";
 import { useNavigate } from "react-router-dom";
 
 interface SessionData {
@@ -93,6 +94,9 @@ const Statistics = () => {
       </div>
 
       <div className="grid gap-6 max-w-6xl mx-auto">
+        {/* Session History Table */}
+        <SessionHistoryTable />
+        
         {sessionData ? (
           <>
             {/* Basic stats */}
@@ -217,13 +221,10 @@ const Statistics = () => {
 
         <div className="flex justify-center gap-4 mt-2">
           <Button variant="outline" onClick={() => navigate("/home")}>
-            Back to Home
+            Về trang chủ
           </Button>
           <Button onClick={() => navigate("/lock-in")}>
-            New Session
-          </Button>
-          <Button variant="secondary" onClick={() => navigate("/settings")}>
-            Settings
+            Session mới
           </Button>
         </div>
       </div>

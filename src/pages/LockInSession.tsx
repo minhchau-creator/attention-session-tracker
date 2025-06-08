@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FocusIndicator, FocusLevel } from "@/components/FocusIndicator";
+import { FocusLevel } from "@/components/FocusIndicator";
 import { SessionConfigForm, SessionConfig } from "@/components/SessionConfigForm";
+import { RealtimeBrainwaveChart } from "@/components/RealtimeBrainwaveChart";
+import { RewardSystem } from "@/components/RewardSystem";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useDevice } from "@/context/DeviceContext";
@@ -202,36 +204,69 @@ const LockInSession = () => {
         )}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <FocusIndicator focusScore={focusScore} focusLevel={focusLevel} />
+      <div className="grid lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {/* Real-time Brainwave Chart */}
+        <div className="lg:col-span-2">
+          <RealtimeBrainwaveChart />
+        </div>
 
-        <Card>
-          <CardContent className="p-6 flex flex-col items-center justify-center">
-            <div className="text-6xl font-bold mb-4">{formatTime(seconds)}</div>
+        {/* Reward System */}
+        <RewardSystem focusTimeMinutes={Math.floor(seconds / 60)} isActive={isActive && !isPaused} />
+
+        {/* Timer and Controls - Full width */}
+        <Card className="lg:col-span-2">
+          <CardContent className="p-8">
+            {/* Focus Status Banner */}
+            <div className={`text-center p-4 rounded-lg mb-6 ${
+              focusLevel === "high" ? "bg-green-100 text-green-800 border-2 border-green-300" :
+              focusLevel === "medium" ? "bg-yellow-100 text-yellow-800 border-2 border-yellow-300" :
+              "bg-red-100 text-red-800 border-2 border-red-300"
+            }`}>
+              <div className="flex items-center justify-center gap-3">
+                <div className="text-2xl">
+                  {focusLevel === "high" ? "🎯" : focusLevel === "medium" ? "⚡" : "⚠️"}
+                </div>
+                <div>
+                  <div className="text-lg font-bold">
+                    {focusLevel === "high" ? "Tập trung cao" : focusLevel === "medium" ? "Tập trung trung bình" : "Cần tập trung hơn"}
+                  </div>
+                  <div className="text-sm">Điểm số: {focusScore}%</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Large Timer Display */}
+            <div className="text-center mb-6">
+              <div className="text-8xl font-mono font-bold text-primary mb-2">{formatTime(seconds)}</div>
+              <div className="text-lg text-muted-foreground">
+                {isActive ? (isPaused ? "Đã tạm dừng" : "Đang học tập") : "Sẵn sàng bắt đầu"}
+              </div>
+            </div>
             
             {/* Progress bar if target duration is set */}
             {targetDuration > 0 && (
-              <div className="w-full mb-4">
+              <div className="w-full mb-6">
                 <div className="flex justify-between text-sm text-muted-foreground mb-1">
                   <span>Tiến độ</span>
                   <span>{Math.min(100, Math.round(progressPercentage))}%</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-3">
                   <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    className="bg-primary h-3 rounded-full transition-all duration-300"
                     style={{ width: `${Math.min(100, progressPercentage)}%` }}
                   ></div>
                 </div>
-                <div className="text-center text-xs text-muted-foreground mt-1">
+                <div className="text-center text-sm text-muted-foreground mt-2">
                   Còn lại: {Math.max(0, Math.floor((targetDuration - seconds) / 60))} phút
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4 w-full">
+            {/* Control Buttons */}
+            <div className="flex justify-center gap-4">
               {!isActive ? (
-                <Button onClick={handleStart} size="lg" className="w-full">
-                  Start Studying
+                <Button onClick={handleStart} size="lg" className="px-12 py-4 text-xl">
+                  🚀 Bắt đầu học
                 </Button>
               ) : (
                 <>
@@ -239,20 +274,45 @@ const LockInSession = () => {
                     onClick={handlePause}
                     variant="outline"
                     size="lg"
-                    className="w-full"
+                    className="px-8 py-4 text-lg"
                   >
-                    {isPaused ? "Continue" : "Pause"}
+                    {isPaused ? "▶️ Tiếp tục" : "⏸️ Tạm dừng"}
                   </Button>
                   <Button
                     onClick={handleStop}
                     variant="destructive"
                     size="lg"
-                    className="w-full"
+                    className="px-8 py-4 text-lg"
                   >
-                    Stop Session
+                    ⏹️ Kết thúc
                   </Button>
                 </>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Focus Level Indicator Card */}
+        <Card className="lg:col-span-1">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl mb-4">
+              {focusLevel === "high" ? "🔥" : focusLevel === "medium" ? "💪" : "😴"}
+            </div>
+            <div className="space-y-3">
+              <div className="text-lg font-semibold">Mức độ tập trung</div>
+              <div className="text-3xl font-bold text-primary">{focusScore}%</div>
+              <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+                focusLevel === "high" ? "bg-green-100 text-green-800" :
+                focusLevel === "medium" ? "bg-yellow-100 text-yellow-800" :
+                "bg-red-100 text-red-800"
+              }`}>
+                {focusLevel === "high" ? "Tuyệt vời!" : focusLevel === "medium" ? "Tốt" : "Cần cải thiện"}
+              </div>
+              <div className="text-xs text-muted-foreground mt-4">
+                {focusLevel === "high" ? "Tiếp tục duy trì!" : 
+                 focusLevel === "medium" ? "Cố gắng tập trung hơn" : 
+                 "Hãy loại bỏ phiền nhiễu"}
+              </div>
             </div>
           </CardContent>
         </Card>
